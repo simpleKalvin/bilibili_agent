@@ -107,6 +107,8 @@ jobs:
 
     - name: Upload Release Asset
       if: github.event_name == 'release'
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         # 查找实际的打包文件
         asset_file=$(ls dist/*-macos-${{ matrix.target }}.tar.gz 2>/dev/null | head -1)
@@ -186,6 +188,8 @@ jobs:
 
     - name: Upload Release Asset
       if: github.event_name == 'release'
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         $assetFile = "dist\${{ env.APP_NAME }}-windows-x64.zip"
         if (Test-Path $assetFile) {
