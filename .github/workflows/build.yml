@@ -78,10 +78,20 @@ jobs:
     - name: Package .app folder
       run: |
         cd build/macos
-        tar -czf "${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz" "${{ env.APP_NAME }}.app"
-        cd ../../
-        mkdir -p dist
-        cp "build/macos/${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz" dist/
+        # 列出构建目录内容以确认实际文件名
+        ls -la
+        # 查找实际的 .app 文件
+        app_file=$(find . -name "*.app" -type d | head -1)
+        if [ -n "$app_file" ]; then
+          app_name=$(basename "$app_file" .app)
+          tar -czf "$app_name-macos-${{ matrix.target }}.tar.gz" "$app_file"
+          cd ../../
+          mkdir -p dist
+          cp "build/macos/$app_name-macos-${{ matrix.target }}.tar.gz" dist/
+        else
+          echo "Error: No .app file found in build/macos directory"
+          exit 1
+        fi
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
@@ -89,8 +99,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz
-        asset_name: ${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz
+        asset_path: ./dist/*-macos-${{ matrix.target }}.tar.gz
+        asset_name: bilibili-agent-macos-${{ matrix.target }}.tar.gz
         asset_content_type: application/octet-stream
 
   build-windows:
