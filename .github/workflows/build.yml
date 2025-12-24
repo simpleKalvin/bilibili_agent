@@ -149,6 +149,9 @@ jobs:
     - name: Flet Build Windows
       run: |
         flutter config --no-analytics
+        # 设置编码环境变量避免 Windows 控制台 Unicode 错误
+        $env:PYTHONIOENCODING = "utf-8"
+        $env:PYTHONUTF8 = "1"
         flet build windows --verbose --build-number=${{ github.run_number }} --build-version=1.0.0
 
     - name: Package Windows executable
