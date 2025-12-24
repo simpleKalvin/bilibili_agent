@@ -8,6 +8,7 @@ authors = [
     { name = "Flet developer", email = "you@example.com" }
 ]
 dependencies = [
+  "aiohttp>=3.13.2",
   "bilibili-api-python>=17.4.1",
   "flet==0.28.3",
 ]
