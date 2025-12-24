@@ -78,10 +78,10 @@ jobs:
     - name: Package .app folder
       run: |
         cd build/macos
-        tar -czf ${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz ${{ env.APP_NAME }}.app
+        tar -czf "${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz" "${{ env.APP_NAME }}.app"
         cd ../../
         mkdir -p dist
-        cp build/macos/${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz dist/
+        cp "build/macos/${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz" dist/
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
