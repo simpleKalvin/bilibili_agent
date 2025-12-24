@@ -53,8 +53,10 @@ jobs:
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
-        # 使用 --target 指定安装目录，避免污染 Flutter 构建环境
-        pip install . --target ./python-deps
+        # 安装 Flet 命令行工具到系统路径
+        pip install flet[all]==0.28.3
+        # 安装项目依赖
+        pip install .
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
@@ -147,8 +149,10 @@ jobs:
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
-        # 使用 --target 指定安装目录，避免污染 Flutter 构建环境
-        pip install . --target ./python-deps
+        # 安装 Flet 命令行工具到系统路径
+        pip install flet[all]==0.28.3
+        # 安装项目依赖
+        pip install .
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
