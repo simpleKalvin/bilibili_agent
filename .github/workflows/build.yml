@@ -2,7 +2,7 @@ name: building
 
 on:
   release:
-    types: [ published, created ]  # 发布和创建时都触发
+    types: [ created ]  # 发布和创建时都触发
 
   # 允许从仓库的 Actions 标签手动运行此工作流
   workflow_dispatch:
