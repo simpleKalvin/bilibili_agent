@@ -29,6 +29,7 @@ copyright = "Copyright (C) 2025 by Flet"
 
 [tool.flet.app]
 path = "src"
+product = "Bilibili Agent"
 
 [tool.uv]
 dev-dependencies = [

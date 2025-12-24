@@ -1,0 +1,48 @@
+"""
+常量定义模块
+定义应用中使用的各种常量
+"""
+
+# MIME 类型映射
+MIME_TYPES = {
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'gif': 'image/gif',
+    'webp': 'image/webp',
+    'bmp': 'image/bmp',
+    'ico': 'image/x-icon',
+}
+
+# UI 常量
+WINDOW_WIDTH = 1200
+WINDOW_HEIGHT = 800
+NAVIGATION_WIDTH = 240
+DANMAKU_MAX_COUNT = 100
+DANMAKU_QUEUE_MAX_SIZE = 50
+MONITOR_HISTORY_MAX_SIZE = 20
+
+# 颜色常量
+COLOR_LIGHT_GREEN_700 = "#43A047"
+COLOR_LIGHT_GREEN_600 = "#66BB6A"
+COLOR_BLUE_600 = "#1E88E5"
+COLOR_GREY_800 = "#424242"
+COLOR_ORANGE_500 = "#FB8C00"
+COLOR_ORANGE_600 = "#F57C00"
+COLOR_PINK_500 = "#E91E63"
+COLOR_PINK_600 = "#D81B60"
+COLOR_PURPLE_500 = "#9C27B0"
+COLOR_PURPLE_600 = "#8E24AA"
+COLOR_GREEN_500 = "#4CAF50"
+COLOR_RED_500 = "#F44336"
+COLOR_GREY_500 = "#9E9E9E"
+COLOR_GREY_600 = "#757575"
+COLOR_BLUE_GREY_50 = "#ECEFF1"
+COLOR_BLUE_GREY_200 = "#B0BEC5"
+COLOR_BLUE_500 = "#2196F3"
+
+# 默认值
+DEFAULT_THANK_TEMPLATE = '感谢【用户名】赠送的【礼物】×【数量】！'
+DEFAULT_AD_INTERVAL = 5
+DEFAULT_AD_UNIT = '分钟'
+DEFAULT_AD_TEXT = ''

@@ -1,15 +1,11 @@
-from bilibili_api import login_v2, sync
-import time
+"""
+Bilibili Agent - 项目根目录入口
 
-
-async def main() -> None:
-    qr = login_v2.QrCodeLogin(platform=login_v2.QrCodeLoginChannel.WEB) # 生成二维码登录实例，平台选择网页端
-    await qr.generate_qrcode()                                          # 生成二维码
-    print(qr.get())                                     # 生成终端二维码文本，打印
-    while not qr.has_done():                                            # 在完成扫描前轮询
-        print(await qr.check_state())                                   # 检查状态
-        time.sleep(1)                                                   # 轮训间隔建议 >=1s
-    print(qr.get_credential().get_cookies())                            # 获取 Credential 类，打印其 Cookies 信息
+此文件用于 Flet 构建工具识别应用入口。
+实际应用逻辑位于 src/app.py
+"""
+from src.app import main
 
 if __name__ == '__main__':
-    sync(main())
+    import flet as ft
+    _ = ft.app(main)
