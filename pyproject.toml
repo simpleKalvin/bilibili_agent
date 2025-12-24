@@ -1,6 +1,6 @@
 [project]
 name = "bilibili-agent"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 readme = "README.md"
 requires-python = ">=3.9"
@@ -28,7 +28,7 @@ company = "Flet"
 copyright = "Copyright (C) 2025 by Flet"
 
 [tool.flet.app]
-path = "src"
+path = "."
 product = "Bilibili Agent"
 
 [tool.uv]
@@ -40,4 +40,4 @@ dev-dependencies = [
 package-mode = false
 
 [tool.poetry.group.dev.dependencies]
-flet = {extras = ["all"], version = "0.28.3"}
+flet = {extras = ["all"], version = "1.0.0"}
