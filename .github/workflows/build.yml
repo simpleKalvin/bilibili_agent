@@ -1,0 +1,160 @@
+name: Test build
+
+on:
+  release:
+    types: [ created ]
+
+  # 允许从仓库的 Actions 标签手动运行此工作流
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: 3.11.9
+  FLUTTER_VERSION: 3.24.0
+  APP_NAME: "Bilibili Agent"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    strategy:
+      matrix:
+        # macOS 架构矩阵：支持 Intel 和 ARM
+        arch: [intel, arm64]
+        include:
+          - arch: intel
+            runner: macos-13  # Intel Mac (x86_64)
+            target: x86_64
+          - arch: arm64
+            runner: macos-14  # Apple Silicon (arm64)
+            target: arm64
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.local
+        key: ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-${{ hashFiles('requirements*.txt', 'pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pub-cache
+          build/flutter
+        key: ${{ runner.os }}-flutter-${{ env.FLUTTER_VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-flutter-
+
+    - name: Flet Build macOS
+      run: |
+        flutter config --no-analytics
+        flet build macos --verbose --build-number=${{ github.run_number }} --build-version=1.0.0
+
+    - name: Package .app folder
+      run: |
+        cd build/macos
+        tar -czf ${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz ${{ env.APP_NAME }}.app
+        cd ../../
+        mkdir -p dist
+        cp build/macos/${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz dist/
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./dist/${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz
+        asset_name: ${{ env.APP_NAME }}-macos-${{ matrix.target }}.tar.gz
+        asset_content_type: application/octet-stream
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~\AppData\Local\pip\Cache
+          ~\AppData\Local\Microsoft\WindowsApps
+        key: ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}-${{ hashFiles('requirements*.txt', 'pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-python-${{ env.PYTHON_VERSION }}
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~\AppData\Local\Pub\Cache
+          build\flutter
+        key: ${{ runner.os }}-flutter-${{ env.FLUTTER_VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-flutter-
+
+    - name: Flet Build Windows
+      run: |
+        flutter config --no-analytics
+        flet build windows --verbose --build-number=${{ github.run_number }} --build-version=1.0.0
+
+    - name: Package Windows executable
+      run: |
+        mkdir -p dist
+        $appName = "${{ env.APP_NAME }}"
+        $exePath = "build\windows\runner\Release\$appName.exe"
+        if (Test-Path $exePath) {
+            Compress-Archive -Path $exePath -DestinationPath "dist\$appName-windows-x64.zip" -Force
+        }
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./dist/${{ env.APP_NAME }}-windows-x64.zip
+        asset_name: ${{ env.APP_NAME }}-windows-x64.zip
+        asset_content_type: application/zip
