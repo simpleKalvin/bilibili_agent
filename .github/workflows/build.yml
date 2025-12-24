@@ -180,7 +180,7 @@ jobs:
             Remove-Item -Recurse -Force build
         }
         # 使用干净的 Python 环境构建
-        flet build windows --verbose --build-number=${{ github.run_number }} --build-version=1.0.0 --include-packages
+        flet build windows --verbose --build-number=${{ github.run_number }} --build-version=1.0.0
 
     - name: Package Windows executable
       run: |
