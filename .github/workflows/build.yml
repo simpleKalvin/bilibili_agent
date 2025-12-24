@@ -171,7 +171,12 @@ jobs:
         # 设置编码环境变量避免 Windows 控制台 Unicode 错误
         $env:PYTHONIOENCODING = "utf-8"
         $env:PYTHONUTF8 = "1"
-        flet build windows --verbose --build-number=${{ github.run_number }} --build-version=1.0.0
+        # 清理构建目录，避免之前的构建残留
+        if (Test-Path build) {
+            Remove-Item -Recurse -Force build
+        }
+        # 使用干净的 Python 环境构建
+        flet build windows --verbose --build-number=${{ github.run_number }} --build-version=1.0.0 --include-packages
 
     - name: Package Windows executable
       run: |
