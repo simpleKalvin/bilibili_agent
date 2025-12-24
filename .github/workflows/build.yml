@@ -77,32 +77,47 @@ jobs:
 
     - name: Package .app folder
       run: |
-        cd build/macos
-        # 列出构建目录内容以确认实际文件名
-        ls -la
-        # 查找实际的 .app 文件
-        app_file=$(find . -name "*.app" -type d | head -1)
-        if [ -n "$app_file" ]; then
-          app_name=$(basename "$app_file" .app)
-          tar -czf "$app_name-macos-${{ matrix.target }}.tar.gz" "$app_file"
-          cd ../../
-          mkdir -p dist
-          cp "build/macos/$app_name-macos-${{ matrix.target }}.tar.gz" dist/
+        # 确保 dist 目录存在
+        mkdir -p dist
+        # 查找构建目录中的 .app 文件
+        if [ -d "build/macos" ]; then
+          cd build/macos
+          # 列出构建目录内容以确认实际文件名
+          ls -la
+          # 查找实际的 .app 文件
+          app_file=$(find . -name "*.app" -type d | head -1)
+          if [ -n "$app_file" ]; then
+            app_name=$(basename "$app_file" .app)
+            echo "Found app: $app_file"
+            echo "App name: $app_name"
+            tar -czf "$app_name-macos-${{ matrix.target }}.tar.gz" "$app_file"
+            cd ../..
+            cp "build/macos/$app_name-macos-${{ matrix.target }}.tar.gz" dist/
+            echo "Packaged: dist/$app_name-macos-${{ matrix.target }}.tar.gz"
+          else
+            echo "Error: No .app file found in build/macos directory"
+            ls -la
+            exit 1
+          fi
         else
-          echo "Error: No .app file found in build/macos directory"
+          echo "Error: build/macos directory does not exist"
+          ls -la build/
           exit 1
         fi
 
     - name: Upload Release Asset
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/*-macos-${{ matrix.target }}.tar.gz
-        asset_name: bilibili-agent-macos-${{ matrix.target }}.tar.gz
-        asset_content_type: application/octet-stream
+      run: |
+        # 查找实际的打包文件
+        asset_file=$(ls dist/*-macos-${{ matrix.target }}.tar.gz 2>/dev/null | head -1)
+        if [ -n "$asset_file" ]; then
+          echo "Uploading: $asset_file"
+          gh release upload ${{ github.event.release.tag_name }} "$asset_file" --clobber
+        else
+          echo "Error: No asset file found in dist directory"
+          ls -la dist/
+          exit 1
+        fi
 
   build-windows:
     runs-on: windows-latest
@@ -161,15 +176,23 @@ jobs:
         $exePath = "build\windows\runner\Release\$appName.exe"
         if (Test-Path $exePath) {
             Compress-Archive -Path $exePath -DestinationPath "dist\$appName-windows-x64.zip" -Force
+            Write-Host "Packaged: dist\$appName-windows-x64.zip"
+        } else {
+            Write-Host "Error: Executable not found at $exePath"
+            Write-Host "Build directory contents:"
+            Get-ChildItem -Recurse build\windows -ErrorAction SilentlyContinue | Select-Object FullName
+            exit 1
         }
 
     - name: Upload Release Asset
       if: github.event_name == 'release'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/${{ env.APP_NAME }}-windows-x64.zip
-        asset_name: ${{ env.APP_NAME }}-windows-x64.zip
-        asset_content_type: application/zip
+      run: |
+        $assetFile = "dist\${{ env.APP_NAME }}-windows-x64.zip"
+        if (Test-Path $assetFile) {
+          Write-Host "Uploading: $assetFile"
+          gh release upload ${{ github.event.release.tag_name }} $assetFile --clobber
+        } else {
+          Write-Host "Error: Asset file not found: $assetFile"
+          Get-ChildItem dist -ErrorAction SilentlyContinue
+          exit 1
+        fi
