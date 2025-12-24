@@ -185,15 +185,23 @@ jobs:
     - name: Package Windows executable
       run: |
         mkdir -p dist
-        $appName = "${{ env.APP_NAME }}"
-        $exePath = "build\windows\runner\Release\$appName.exe"
-        if (Test-Path $exePath) {
-            Compress-Archive -Path $exePath -DestinationPath "dist\$appName-windows-x64.zip" -Force
-            Write-Host "Packaged: dist\$appName-windows-x64.zip"
+        # 列出构建目录内容以调试
+        Write-Host "Build directory contents:"
+        Get-ChildItem -Recurse build\windows -ErrorAction SilentlyContinue | Select-Object FullName
+        
+        # 动态查找 .exe 文件
+        $exeFile = Get-ChildItem -Path "build\windows" -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        
+        if ($exeFile) {
+            $exeName = $exeFile.BaseName
+            $exeDir = $exeFile.DirectoryName
+            Write-Host "Found executable: $($exeFile.FullName)"
+            
+            # 打包整个目录（包含依赖的 dll 文件）
+            Compress-Archive -Path "$exeDir\*" -DestinationPath "dist\$exeName-windows-x64.zip" -Force
+            Write-Host "Packaged: dist\$exeName-windows-x64.zip"
         } else {
-            Write-Host "Error: Executable not found at $exePath"
-            Write-Host "Build directory contents:"
-            Get-ChildItem -Recurse build\windows -ErrorAction SilentlyContinue | Select-Object FullName
+            Write-Host "Error: No .exe file found in build\windows directory"
             exit 1
         }
 
@@ -202,12 +210,13 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        $assetFile = "dist\${{ env.APP_NAME }}-windows-x64.zip"
-        if (Test-Path $assetFile) {
-          Write-Host "Uploading: $assetFile"
-          gh release upload ${{ github.event.release.tag_name }} $assetFile --clobber
+        # 查找实际的打包文件
+        $assetFile = Get-ChildItem -Path "dist" -Filter "*-windows-x64.zip" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($assetFile) {
+          Write-Host "Uploading: $($assetFile.FullName)"
+          gh release upload ${{ github.event.release.tag_name }} $assetFile.FullName --clobber
         } else {
-          Write-Host "Error: Asset file not found: $assetFile"
+          Write-Host "Error: No asset file found in dist directory"
           Get-ChildItem dist -ErrorAction SilentlyContinue
           exit 1
-        fi
+        }
